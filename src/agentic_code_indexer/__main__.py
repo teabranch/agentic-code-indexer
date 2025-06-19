@@ -15,6 +15,8 @@ import logging
 from .main_pipeline import MainPipeline
 from .llm_integration import LLMEmbeddingIntegration
 from .summarization_orchestrator import HierarchicalSummarizationOrchestrator
+from .hybrid_search import HybridSearchEngine, HybridSearchConfig
+from .search_api import run_api
 
 console = Console()
 app = typer.Typer(
@@ -194,6 +196,240 @@ def reset_command(
         raise typer.Exit(1)
     finally:
         orchestrator.close()
+
+@app.command("search")
+def search_command(
+    query: str = typer.Argument(..., help="Search query"),
+    neo4j_uri: str = typer.Option("bolt://localhost:7687", "--neo4j-uri", help="Neo4j database URI"),
+    neo4j_user: str = typer.Option("neo4j", "--neo4j-user", help="Neo4j username"),
+    neo4j_password: str = typer.Option("password", "--neo4j-password", help="Neo4j password"),
+    max_results: int = typer.Option(10, "--max-results", "-n", help="Maximum number of results"),
+    include_context: bool = typer.Option(True, "--context/--no-context", help="Include graph context"),
+    include_code: bool = typer.Option(False, "--code/--no-code", help="Include source code"),
+    node_types: str = typer.Option(None, "--types", help="Comma-separated node types (Class,Method,Function)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed results")
+):
+    """
+    🔍 Search the indexed codebase using natural language.
+    
+    Performs hybrid search combining:
+    • Semantic similarity using embeddings
+    • Direct entity name matching
+    • Graph context expansion
+    
+    Examples:
+      search "authentication methods"
+      search "PaymentService class" --types Class
+      search "error handling" --context --code
+    """
+    
+    async def run_search():
+        from rich.table import Table
+        from rich.text import Text
+        
+        console.print(Panel.fit(
+            f"[bold magenta]🔍 Searching: {query}[/bold magenta]\n"
+            "Hybrid semantic + entity search",
+            border_style="magenta"
+        ))
+        
+        # Initialize search engine
+        search_engine = HybridSearchEngine(neo4j_uri, neo4j_user, neo4j_password)
+        
+        try:
+            # Parse node types
+            parsed_node_types = None
+            if node_types:
+                parsed_node_types = [t.strip() for t in node_types.split(',')]
+            
+            # Configure search
+            config = HybridSearchConfig(
+                max_total_results=max_results,
+                enable_context_expansion=include_context,
+                include_source_code=include_code
+            )
+            
+            # Perform search
+            results = await search_engine.search(query, config)
+            
+            if not results:
+                console.print("[yellow]No results found[/yellow]")
+                return
+            
+            # Display results
+            table = Table(title=f"Search Results ({len(results)} found)")
+            table.add_column("Rank", justify="right", style="cyan", no_wrap=True)
+            table.add_column("Name", style="bold")
+            table.add_column("Type", style="green")
+            table.add_column("Score", justify="right", style="yellow")
+            table.add_column("Match", style="blue")
+            if verbose:
+                table.add_column("Summary", style="dim", max_width=50)
+            
+            for i, result in enumerate(results, 1):
+                name_text = result.search_result.name
+                if result.search_result.full_name != result.search_result.name:
+                    name_text = f"{result.search_result.name}\n[dim]{result.search_result.full_name}[/dim]"
+                
+                score_text = f"{result.hybrid_score:.3f}"
+                if result.search_result.similarity_score != result.hybrid_score:
+                    score_text += f"\n[dim]({result.search_result.similarity_score:.3f})[/dim]"
+                
+                row = [
+                    str(i),
+                    name_text,
+                    result.search_result.node_type,
+                    score_text,
+                    result.match_type
+                ]
+                
+                if verbose:
+                    summary = result.search_result.summary[:100] + "..." if len(result.search_result.summary) > 100 else result.search_result.summary
+                    row.append(summary)
+                
+                table.add_row(*row)
+            
+            console.print(table)
+            
+            # Show context information if available
+            if include_context and results and results[0].context:
+                context = results[0].context
+                console.print(f"\n[bold]Context Information:[/bold]")
+                console.print(f"  Related nodes: {len(context.related_nodes)}")
+                console.print(f"  Relationships: {len(context.relationships)}")
+                
+                if context.traversal_summary:
+                    console.print("  Node types found:")
+                    for node_type, count in context.traversal_summary.get('node_types', {}).items():
+                        console.print(f"    {node_type}: {count}")
+            
+            # Show source code if requested
+            if include_code and verbose:
+                for i, result in enumerate(results[:3], 1):  # Show code for top 3 results
+                    if result.search_result.raw_code:
+                        console.print(f"\n[bold]Code for Result {i}:[/bold]")
+                        console.print(Panel(
+                            result.search_result.raw_code,
+                            title=result.search_result.name,
+                            border_style="dim"
+                        ))
+                        
+        except Exception as e:
+            console.print(f"[red]❌ Search failed: {e}[/red]")
+            raise typer.Exit(1)
+        finally:
+            search_engine.close()
+    
+    asyncio.run(run_search())
+
+@app.command("explain")
+def explain_command(
+    query: str = typer.Argument(..., help="Query to explain"),
+    neo4j_uri: str = typer.Option("bolt://localhost:7687", "--neo4j-uri", help="Neo4j database URI"),
+    neo4j_user: str = typer.Option("neo4j", "--neo4j-user", help="Neo4j username"),
+    neo4j_password: str = typer.Option("password", "--neo4j-password", help="Neo4j password")
+):
+    """
+    💡 Explain how a search query would be processed.
+    
+    Shows the query parsing, search strategy, and approach
+    that would be used for a given search query.
+    """
+    
+    async def run_explain():
+        console.print(Panel.fit(
+            f"[bold blue]💡 Query Analysis: {query}[/bold blue]\n"
+            "Understanding search strategy",
+            border_style="blue"
+        ))
+        
+        search_engine = HybridSearchEngine(neo4j_uri, neo4j_user, neo4j_password)
+        
+        try:
+            explanation = await search_engine.explain_search(query)
+            
+            from rich.tree import Tree
+            
+            tree = Tree(f"[bold]Query: {query}[/bold]")
+            
+            # Add parsed intent
+            intent_branch = tree.add("[yellow]Parsed Intent[/yellow]")
+            parsed = explanation['parsed_intent']
+            intent_branch.add(f"Query Type: [green]{parsed['query_type']}[/green]")
+            intent_branch.add(f"Confidence: [blue]{parsed['confidence']:.2f}[/blue]")
+            
+            if parsed['entity_names']:
+                entities = intent_branch.add("Entity Names:")
+                for entity in parsed['entity_names']:
+                    entities.add(f"• {entity}")
+            
+            if parsed['semantic_terms']:
+                terms = intent_branch.add("Semantic Terms:")
+                for term in parsed['semantic_terms']:
+                    terms.add(f"• {term}")
+            
+            if parsed['node_types']:
+                types = intent_branch.add("Node Types:")
+                for node_type in parsed['node_types']:
+                    types.add(f"• {node_type}")
+            
+            # Add search strategy
+            strategy_branch = tree.add("[cyan]Search Strategy[/cyan]")
+            for strategy in explanation['search_strategy']:
+                strategy_branch.add(f"• {strategy}")
+            
+            # Add approach
+            approach_branch = tree.add("[magenta]Approach[/magenta]")
+            approach_branch.add(explanation['estimated_approach'])
+            
+            console.print(tree)
+            
+        except Exception as e:
+            console.print(f"[red]❌ Explain failed: {e}[/red]")
+            raise typer.Exit(1)
+        finally:
+            search_engine.close()
+    
+    asyncio.run(run_explain())
+
+@app.command("api")
+def api_command(
+    host: str = typer.Option("0.0.0.0", "--host", help="Host to bind to"),
+    port: int = typer.Option(8000, "--port", help="Port to bind to"),
+    reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for development"),
+    log_level: str = typer.Option("info", "--log-level", help="Log level")
+):
+    """
+    🌐 Start the search API server.
+    
+    Provides REST API endpoints for:
+    • Hybrid code search
+    • Call hierarchy analysis  
+    • Inheritance hierarchy analysis
+    • Node details lookup
+    • Search statistics
+    
+    The API will be available at http://localhost:8000
+    Documentation at http://localhost:8000/docs
+    """
+    
+    console.print(Panel.fit(
+        f"[bold green]🌐 Starting Search API Server[/bold green]\n"
+        f"Host: {host}\n"
+        f"Port: {port}\n"
+        f"Docs: http://{host}:{port}/docs",
+        border_style="green"
+    ))
+    
+    # Set environment variables if not already set
+    if not os.getenv("NEO4J_URI"):
+        os.environ["NEO4J_URI"] = "bolt://localhost:7687"
+    if not os.getenv("NEO4J_USER"):
+        os.environ["NEO4J_USER"] = "neo4j"
+    if not os.getenv("NEO4J_PASSWORD"):
+        os.environ["NEO4J_PASSWORD"] = "password"
+    
+    run_api(host=host, port=port, reload=reload, log_level=log_level)
 
 async def run_llm_enrichment(neo4j_uri: str, neo4j_user: str, neo4j_password: str, batch_size: int = 20):
     """Run the complete LLM enrichment process."""

@@ -7,7 +7,10 @@ An intelligent code analysis and graph-based indexing system that creates a comp
 - **🌐 Multi-language Support**: Python, C#, JavaScript/TypeScript
 - **📊 Graph-based Representation**: Rich code relationships in Neo4j
 - **🧠 LLM-powered Summarization**: Hierarchical code summaries using Claude
-- **🔍 Semantic Search**: Vector embeddings for intelligent code search
+- **🔍 Hybrid Search System**: Vector similarity + entity lookup + graph context expansion
+- **🎯 Natural Language Queries**: "Find authentication methods" or "PaymentService class"
+- **🕸️ GraphRAG Context**: Expand search results with related code relationships
+- **🌐 REST API**: FastAPI-based search API with interactive documentation
 - **⚡ Incremental Processing**: Change detection with SHA-256 checksums
 - **🚀 Concurrent Processing**: Async/await for high-performance indexing
 - **🎨 Beautiful CLI**: Rich terminal interface with progress tracking
@@ -85,6 +88,21 @@ python -m agentic_code_indexer status
 python -m agentic_code_indexer summarize
 ```
 
+4. **Search your codebase**
+```bash
+# Natural language search
+python -m agentic_code_indexer search "authentication methods"
+python -m agentic_code_indexer search "PaymentService class" --types Class
+python -m agentic_code_indexer search "error handling" --context --code
+
+# Explain how a query would be processed
+python -m agentic_code_indexer explain "user authentication"
+
+# Start the search API server
+python -m agentic_code_indexer api --host 0.0.0.0 --port 8000
+# Then visit http://localhost:8000/docs for interactive API documentation
+```
+
 ## 📚 Component Overview
 
 ### Phase 1: Foundation (✅ Complete)
@@ -103,6 +121,16 @@ python -m agentic_code_indexer summarize
 - **🧠 Hierarchical Summarization**: Bottom-up LLM processing (Parameters → Variables → Methods → Classes → Files)
 - **🔍 Embedding Generation**: Local vector generation using Jina embeddings
 - **⚙️ Transaction Management**: Error handling, retry mechanisms, and batch optimization
+
+### Phase 3: Retrieval System (✅ Complete)
+
+- **🔍 Vector Search Engine**: Semantic similarity search using Neo4j vector indexes
+- **🕸️ Graph Traversal Engine**: GraphRAG-style context expansion with relationship following
+- **🎯 Hybrid Search System**: Combines vector similarity, entity lookup, and graph context
+- **🤖 Query Intent Parsing**: Intelligent analysis of natural language queries
+- **📊 Call & Inheritance Hierarchy**: Analyze method calls and class inheritance patterns
+- **🌐 REST API**: FastAPI-based search API with comprehensive endpoints
+- **💻 Interactive CLI**: Rich terminal search interface with explanations
 
 ## 🛠️ Advanced Usage
 
@@ -157,7 +185,48 @@ The system creates a rich graph model in Neo4j:
 - Cosine similarity for semantic search
 - Optimized for `jina-embeddings-v2-base-code` model
 
-## 🔍 Querying the Graph
+## 🔍 Search Examples
+
+### Natural Language Search
+
+```bash
+# Find authentication-related code
+python -m agentic_code_indexer search "user authentication login"
+
+# Search for specific classes
+python -m agentic_code_indexer search "PaymentService" --types Class
+
+# Find error handling patterns
+python -m agentic_code_indexer search "exception handling try catch" --context
+
+# Search with source code included
+python -m agentic_code_indexer search "database connection" --code --verbose
+
+# Explain search strategy
+python -m agentic_code_indexer explain "API rate limiting middleware"
+```
+
+### REST API Examples
+
+```bash
+# Start the API server
+python -m agentic_code_indexer api
+
+# Search via HTTP
+curl -X POST "http://localhost:8000/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "authentication methods", "max_results": 5, "include_context": true}'
+
+# Get call hierarchy for a method
+curl -X POST "http://localhost:8000/hierarchy/call" \
+  -H "Content-Type: application/json" \
+  -d '{"node_id": "method_123", "direction": "both", "max_depth": 2}'
+
+# Get inheritance hierarchy for a class
+curl -X POST "http://localhost:8000/hierarchy/inheritance" \
+  -H "Content-Type: application/json" \
+  -d '{"node_id": "class_456"}'
+```
 
 ### Example Cypher Queries
 
