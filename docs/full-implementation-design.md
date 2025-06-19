@@ -9,16 +9,16 @@ This guide breaks down the implementation into phases, aligning with the actiona
 ### **Phase 1: Foundation & Chunker Development**
 
 *   **Step 1: Setup Neo4j Database and Schema**
-    *   [ ] **Install Neo4j**: Set up a Neo4j instance (Community Edition, AuraDB, or Docker).
-    *   [ ] **Define Schema**: Translate the detailed graph model (Section 3.2) into Cypher schema creation scripts.
-    *   [ ] **Create Uniqueness Constraints**: Execute Cypher commands to create uniqueness constraints for crucial node properties (critical for `MERGE` performance and data integrity):
-        *   [ ] `CREATE CONSTRAINT ON (f:File) ASSERT f.path IS UNIQUE`.
-        *   [ ] `CREATE CONSTRAINT ON (c:Class) ASSERT c.full_name IS UNIQUE`.
-        *   [ ] `CREATE CONSTRAINT ON (m:Method) ASSERT m.full_name IS UNIQUE`.
-        *   [ ] Create similar constraints for `Function.full_name` and `Variable.full_name`.
-    *   [ ] **Create Vector Indexes**: Create vector indexes on the `embedding` property for all searchable node types:
-        *   [ ] `CREATE VECTOR INDEX code_summaries_file_embedding IF NOT EXISTS FOR (n:File) ON (n.embedding) OPTIONS { indexConfig: { `vector.dimensions`: 768, `vector.similarity_function`: 'cosine' } }`.
-        *   [ ] Create separate vector indexes for `Class`, `Method`, and `Variable` nodes, ensuring `vector.dimensions` is 768 (as recommended for `jina-embeddings-v2-base-code`).
+    *   [x] **Install Neo4j**: Set up a Neo4j instance (Community Edition, AuraDB, or Docker).
+    *   [x] **Define Schema**: Translate the detailed graph model (Section 3.2) into Cypher schema creation scripts.
+    *   [x] **Create Uniqueness Constraints**: Execute Cypher commands to create uniqueness constraints for crucial node properties (critical for `MERGE` performance and data integrity):
+        *   [x] `CREATE CONSTRAINT ON (f:File) ASSERT f.path IS UNIQUE`.
+        *   [x] `CREATE CONSTRAINT ON (c:Class) ASSERT c.full_name IS UNIQUE`.
+        *   [x] `CREATE CONSTRAINT ON (m:Method) ASSERT m.full_name IS UNIQUE`.
+        *   [x] Create similar constraints for `Function.full_name` and `Variable.full_name`.
+    *   [x] **Create Vector Indexes**: Create vector indexes on the `embedding` property for all searchable node types:
+        *   [x] `CREATE VECTOR INDEX code_summaries_file_embedding IF NOT EXISTS FOR (n:File) ON (n.embedding) OPTIONS { indexConfig: { `vector.dimensions`: 768, `vector.similarity_function`: 'cosine' } }`.
+        *   [x] Create separate vector indexes for `Class`, `Method`, and `Variable` nodes, ensuring `vector.dimensions` is 768 (as recommended for `jina-embeddings-v2-base-code`).
 
 *   **Step 2: Implement C# Chunker (`Repository/src/csharp-chunker`)**
     *   [ ] **Project Setup**: Create a **.NET console application project** for the C# chunker.
@@ -34,15 +34,15 @@ This guide breaks down the implementation into phases, aligning with the actiona
     *   [ ] **Testing**: Develop unit tests to ensure accurate parsing and extraction for various C# code constructs.
 
 *   **Step 3: Implement Python Chunker (`Repository/src/python-chunker`)**
-    *   [ ] **Project Setup**: Create a Python package/module for the Python chunker.
-    *   [ ] **Install Libraries**: Install **`LibCST`** and **`ast-scope`**.
-    *   [ ] **Parsing**: Implement parsing logic using **`LibCST`** to generate a Concrete Syntax Tree (CST), meticulously preserving all comments, whitespace, and formatting.
-    *   [ ] **Scope Analysis**: Integrate **`ast-scope.annotate()`** to resolve variable scopes (e.g., `FunctionScope`, `GlobalScope`) by converting the LibCST tree to a standard `ast` tree if necessary.
-    *   [ ] **Information Extraction**: Traverse the CST to identify `FunctionDef`, `ClassDef`, and `Assign` nodes, extracting names and identifiers.
-    *   [ ] **Docstring Extraction**: Reliably extract docstrings using helper functions or by inspecting the first statement within a function/class body.
-    *   [ ] **Data Extraction**: Extract properties for Python nodes (`File`, `Class`, `Function`, `Method`, `Variable`, `Parameter`), including `raw_code` snippets and location information (start/end lines).
-    *   [ ] **Relationship Identification**: Identify `CONTAINS`, `DEFINES`, `DECLARES`, and `SCOPES` relationships.
-    *   [ ] **Output**: Serialize the extracted data into the **common JSON format**.
+    *   [x] **Project Setup**: Create a Python package/module for the Python chunker.
+    *   [x] **Install Libraries**: Install **`LibCST`** and **`ast-scope`**.
+    *   [x] **Parsing**: Implement parsing logic using **`LibCST`** to generate a Concrete Syntax Tree (CST), meticulously preserving all comments, whitespace, and formatting.
+    *   [x] **Scope Analysis**: Integrate **`ast-scope.annotate()`** to resolve variable scopes (e.g., `FunctionScope`, `GlobalScope`) by converting the LibCST tree to a standard `ast` tree if necessary.
+    *   [x] **Information Extraction**: Traverse the CST to identify `FunctionDef`, `ClassDef`, and `Assign` nodes, extracting names and identifiers.
+    *   [x] **Docstring Extraction**: Reliably extract docstrings using helper functions or by inspecting the first statement within a function/class body.
+    *   [x] **Data Extraction**: Extract properties for Python nodes (`File`, `Class`, `Function`, `Method`, `Variable`, `Parameter`), including `raw_code` snippets and location information (start/end lines).
+    *   [x] **Relationship Identification**: Identify `CONTAINS`, `DEFINES`, `DECLARES`, and `SCOPES` relationships.
+    *   [x] **Output**: Serialize the extracted data into the **common JSON format**.
     *   [ ] **Testing**: Develop unit tests to verify parsing accuracy, comment preservation, and scope resolution.
 
 *   **Step 4: Implement NodeJS Chunker (`Repository/src/nodejs-chunker`)**
