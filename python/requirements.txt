@@ -1,0 +1,8 @@
+# No external dependencies required - using only Python standard library modules
+# ast - for parsing Python code (built-in)
+# json - for JSON export (built-in)
+# os, pathlib - for file system operations (built-in)
+# argparse - for command line parsing (built-in)
+# datetime - for timestamps (built-in)
+# base64 - for encoding paths (built-in)
+# re - for regex parsing of requirements files (built-in) 

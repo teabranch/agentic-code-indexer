@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@babel/traverse": "^7.26.9",
+    "uuid": "^11.0.5"
+  }
+}
