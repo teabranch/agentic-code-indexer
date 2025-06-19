@@ -32,7 +32,7 @@ class NodeJSChunker {
     }
 
     private calculateChecksum(content: string): string {
-        return crypto.createHash('sha256').update(content, 'utf8').hexdigest();
+        return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
     }
 
     private getRelativePath(filePath: string): string {

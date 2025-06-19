@@ -46,23 +46,23 @@ This guide breaks down the implementation into phases, aligning with the actiona
     *   [ ] **Testing**: Develop unit tests to verify parsing accuracy, comment preservation, and scope resolution.
 
 *   **Step 4: Implement NodeJS Chunker (`Repository/src/nodejs-chunker`)**
-    *   [ ] **Project Setup**: Create a NodeJS project for the chunker.
-    *   [ ] **Install Libraries**: Install **`acorn`**.
-    *   [ ] **TypeScript Setup**: Set up TypeScript compilation for the chunker itself.
-    *   [ ] **File Type & Module System Detection**: Implement logic to differentiate `.js`, `.ts`, `.tsx` files and detect CommonJS vs. ES Modules based on file extension (`.mjs`, `.cjs`) or the `"type"` field in `package.json`.
-    *   [ ] **Parsing Logic (Hybrid)**:
-        *   [ ] For `.js` files, use **`acorn`** with the appropriate `sourceType` option set to `"module"` for ES Modules to recognize `ImportDeclaration` and `ExportNamedDeclaration` nodes.
-        *   [ ] For `.ts`/`.tsx` files, use the **TypeScript Compiler API** to parse and extract rich type information.
-    *   [ ] **CommonJS Heuristics**: Implement heuristics for CJS `require` calls and `module.exports`/`exports.someIdentifier` assignments by traversing `CallExpression` and `AssignmentExpression` nodes.
-    *   [ ] **Data Extraction**: Extract properties for NodeJS nodes (`File`, `Function`, `Class`, `Variable`, `Parameter`), including `name`, `type`, `raw_code`, and location information.
-    *   [ ] **Relationship Identification**: Identify `CONTAINS`, `DEFINES`, `DECLARES`, and `IMPORTS` relationships.
-    *   [ ] **Output**: Serialize the extracted data into the **common JSON format**.
+    *   [x] **Project Setup**: Create a NodeJS project for the chunker.
+    *   [x] **Install Libraries**: Install **`acorn`**.
+    *   [x] **TypeScript Setup**: Set up TypeScript compilation for the chunker itself.
+    *   [x] **File Type & Module System Detection**: Implement logic to differentiate `.js`, `.ts`, `.tsx` files and detect CommonJS vs. ES Modules based on file extension (`.mjs`, `.cjs`) or the `"type"` field in `package.json`.
+    *   [x] **Parsing Logic (Hybrid)**:
+        *   [x] For `.js` files, use **`acorn`** with the appropriate `sourceType` option set to `"module"` for ES Modules to recognize `ImportDeclaration` and `ExportNamedDeclaration` nodes.
+        *   [x] For `.ts`/`.tsx` files, use the **TypeScript Compiler API** to parse and extract rich type information.
+    *   [x] **CommonJS Heuristics**: Implement heuristics for CJS `require` calls and `module.exports`/`exports.someIdentifier` assignments by traversing `CallExpression` and `AssignmentExpression` nodes.
+    *   [x] **Data Extraction**: Extract properties for NodeJS nodes (`File`, `Function`, `Class`, `Variable`, `Parameter`), including `name`, `type`, `raw_code`, and location information.
+    *   [x] **Relationship Identification**: Identify `CONTAINS`, `DEFINES`, `DECLARES`, and `IMPORTS` relationships.
+    *   [x] **Output**: Serialize the extracted data into the **common JSON format**.
     *   [ ] **Testing**: Develop tests for both JS and TS parsing, covering different module systems and syntax.
 
 *   **Step 5: Define Common Intermediate Data Format**
-    *   [ ] **Refine Schema**: Finalize the **precise JSON schema** that each chunker will output.
-    *   [ ] **Format Structure**: Ensure it includes fields for `label(s)`, `properties`, and ways to represent relationships (e.g., `source_id`, `target_id`, `type`).
-    *   [ ] **Validation**: Verify the format is flexible enough for all languages but structured enough for easy ingestion into Neo4j.
+    *   [x] **Refine Schema**: Finalize the **precise JSON schema** that each chunker will output.
+    *   [x] **Format Structure**: Ensure it includes fields for `label(s)`, `properties`, and ways to represent relationships (e.g., `source_id`, `target_id`, `type`).
+    *   [x] **Validation**: Verify the format is flexible enough for all languages but structured enough for easy ingestion into Neo4j.
 
 ---
 
@@ -131,3 +131,25 @@ This guide breaks down the implementation into phases, aligning with the actiona
     *   [ ] **Graph-based Ranking (Optional)**: Consider running graph algorithms like **PageRank** offline to pre-compute node importance for ranking.
     *   [ ] **Pre-computed Views (Optional)**: Generate detailed summaries for critical components during indexing as a cache for frequent queries.
     *   [ ] **Query Parameterization**: Ensure all user input in Cypher queries is passed as **parameters** to allow Neo4j's query plan caching and significantly improve performance.
+
+---
+
+## New Items
+
+Items discovered during implementation that were not in the original design:
+
+*   [ ] **C# Chunker Implementation**: Step 2 in the original design is not yet implemented. Need to create the C# chunker using Microsoft.CodeAnalysis.CSharp.
+*   [ ] **Docker Compose Setup**: Created docker-compose.yml for easy Neo4j development setup with proper plugins and configuration.
+*   [ ] **Environment Configuration**: Created .env support for database connection parameters and API keys.
+*   [ ] **Testing Framework Setup**: Need to implement unit tests for all chunkers to ensure accuracy and reliability.
+*   [ ] **CI/CD Pipeline**: Need to set up continuous integration for testing and deployment.
+*   [ ] **Performance Benchmarking**: Need to implement performance testing to measure chunker speed and accuracy across different codebases.
+*   [ ] **Error Handling & Logging**: Enhanced error handling and structured logging across all components.
+*   [ ] **Configuration Management**: Centralized configuration management for all chunkers and the main pipeline.
+*   [ ] **Python Virtual Environment Setup**: Need to document and automate Python virtual environment setup for development.
+*   [ ] **NodeJS Package Management**: Enhanced package.json with proper dependencies and development workflow.
+*   [ ] **Cross-Platform Compatibility**: Ensure all scripts and tools work across Windows, macOS, and Linux.
+*   [ ] **Documentation Generation**: Automated documentation generation from code comments and docstrings.
+*   [ ] **API Rate Limiting**: Implement rate limiting for external API calls (LLM, embedding models).
+*   [ ] **Database Migration Scripts**: Create database migration scripts for schema updates and versioning.
+*   [ ] **Backup and Recovery**: Implement backup strategies for Neo4j database and processed data.
