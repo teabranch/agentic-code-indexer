@@ -289,6 +289,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Anthropic Claude** for intelligent code summarization
 - **Jina AI** for state-of-the-art code embeddings
 
+## Cite this project
+
+### Code citation
+```
+@software{agentic-code-indexer,
+  author = {TeaBranch},
+  title = {agentic-code-indexer: An intelligent code analysis and graph-based indexing system that creates a comprehensive, searchable representation of your codebase using Neo4j, LLMs, and semantic embeddings.},
+  year = {2025},
+  publisher = {GitHub},
+  journal = {GitHub Repository},
+  howpublished = {\url{https://github.com/teabranch/agentic-code-indexer}},
+  commit = {use the commit hash you’re working with}
+}
+```
+
+### Text citation
+
+TeaBranch. (2025). agentic-code-indexer: An intelligent code analysis and graph-based indexing system that creates a comprehensive, searchable representation of your codebase using Neo4j, LLMs, and semantic embeddings. [Computer software]. GitHub. https://github.com/teabranch/agentic-code-indexer
+
+
 ---
 
 **Ready to explore your codebase like never before?** 🚀
