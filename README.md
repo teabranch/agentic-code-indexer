@@ -1,3 +1,6 @@
+![image](https://github.com/user-attachments/assets/ffc8a373-60e8-46b0-a8c8-b211f4de57fa)
+
+
 # 🤖 Agentic Code Indexer
 
 An intelligent code analysis and graph-based indexing system that creates a comprehensive, searchable representation of your codebase using Neo4j, LLMs, and semantic embeddings.
