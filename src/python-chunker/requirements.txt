@@ -1,0 +1,3 @@
+libcst>=1.1.0
+ast-scope>=0.4.0
+pydantic>=2.5.0 
